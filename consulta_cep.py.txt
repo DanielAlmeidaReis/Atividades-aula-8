@@ -1,0 +1,59 @@
+import requests
+
+def consultar_cep(cep):
+    # Limpeza dos dados: remove traços, pontos e espaços
+    cep = cep.replace("-", "").replace(".", "").strip()
+
+    # Barreira 1: Validação básica de digitação
+    if len(cep) != 8 or not cep.isdigit():
+        return "❌ Erro: CEP inválido. Certifique-se de digitar 8 números."
+
+    url = f"https://viacep.com.br/ws/{cep}/json/"
+
+    try:
+        # Tenta conectar com a API
+        response = requests.get(url)
+        response.raise_for_status() 
+        
+        dados = response.json()
+
+        # Barreira 2: API respondeu, mas o CEP não existe lá
+        if "erro" in dados:
+            return "❌ Erro: CEP não encontrado na base de dados dos Correios."
+
+        # Sucesso: Formatação legível
+        resultado = (
+            f"\n--- Informações de Endereço ---\n"
+            f"📍 Logradouro: {dados.get('logradouro', 'N/A')}\n"
+            f"🏠 Bairro:     {dados.get('bairro', 'N/A')}\n"
+            f"🏙️ Cidade:     {dados.get('localidade', 'N/A')}\n"
+            f"🚩 Estado:     {dados.get('uf', 'N/A')}\n"
+            f"📮 CEP:        {dados.get('cep', 'N/A')}\n"
+            f"📞 DDD:        {dados.get('ddd', 'N/A')}\n"
+            f"-------------------------------"
+        )
+        return resultado
+
+    # Barreira 3: Sem internet ou servidor fora do ar
+    except requests.exceptions.RequestException:
+        return "❌ Erro de conexão: Verifique sua internet ou tente novamente mais tarde."
+
+# --- Bloco Principal de Execução ---
+if __name__ == "__main__":
+    print("=== SISTEMA DE CONSULTA DE CEP ===")
+    
+    while True:
+        # Pede o CEP ou o comando para sair
+        entrada = input("\nDigite o CEP (ou 'S' para sair): ")
+        
+        # Condição de parada do programa
+        if entrada.strip().upper() == 'S':
+            print("Encerrando o programa. Até logo!")
+            break
+            
+        print("Consultando, aguarde...")
+        # Chama a função e imprime o resultado
+        print(consultar_cep(entrada))
+        
+        # Faz o terminal pausar para o usuário ler o resultado
+        input("\nPressione [ENTER] para fazer uma nova consulta...")

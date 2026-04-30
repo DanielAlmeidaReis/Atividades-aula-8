@@ -1,0 +1,1 @@
+Os prompts ajudaram para poder guiar a I.A principalmente em pedidos específicos e para corrigir erros, a I.A consegue criar o código do zero e deixar executável, porém para pedidos específicos ela precisa de um guia ou uma ideia para poder trabalhar em cima, os prompts também foram úteis para definir a arquitetura de todos os códigos.

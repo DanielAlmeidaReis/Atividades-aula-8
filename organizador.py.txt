@@ -1,0 +1,72 @@
+import os
+import shutil
+
+def organizar_diretorio(caminho_pasta):
+    diretorios = {
+        "Imagens": [".jpg", ".jpeg", ".png", ".gif", ".svg"],
+        "Documentos": [".pdf", ".docx", ".txt", ".xlsx", ".pptx"],
+        "Videos": [".mp4", ".mkv", ".mov", ".avi"],
+        "Musicas": [".mp3", ".wav", ".flac"],
+        "Compactados": [".zip", ".rar", ".7z"],
+        "Executaveis": [".exe", ".msi"]
+    }
+
+    try:
+        os.chdir(caminho_pasta)
+    except PermissionError:
+        print("❌ Erro: Você não tem permissão para acessar esta pasta principal.")
+        return
+    except FileNotFoundError:
+        print("❌ Erro: Caminho não encontrado.")
+        return
+
+    for arquivo in os.listdir():
+        if os.path.isfile(arquivo):
+            nome_base, extensao = os.path.splitext(arquivo)
+            extensao = extensao.lower()
+            
+            movido = False
+            for pasta, extensoes_permitidas in diretorios.items():
+                if extensao in extensoes_permitidas:
+                    mover_com_seguranca(arquivo, pasta, nome_base, extensao)
+                    movido = True
+                    break
+            
+            if not movido and extensao != "":
+                mover_com_seguranca(arquivo, "Outros", nome_base, extensao)
+
+def mover_com_seguranca(arquivo, pasta_destino, nome_base, extensao):
+    # Cria a pasta se não existir
+    if not os.path.exists(pasta_destino):
+        try:
+            os.makedirs(pasta_destino)
+        except PermissionError:
+            print(f"⚠️ Ignorado: Sem permissão para criar a pasta '{pasta_destino}'.")
+            return
+
+    caminho_destino = os.path.join(pasta_destino, arquivo)
+
+    # Evita sobrescrever arquivos com o mesmo nome
+    contador = 1
+    while os.path.exists(caminho_destino):
+        novo_nome = f"{nome_base}_{contador}{extensao}"
+        caminho_destino = os.path.join(pasta_destino, novo_nome)
+        contador += 1
+
+    # Tenta mover o arquivo e lida com erros de permissão
+    try:
+        shutil.move(arquivo, caminho_destino)
+        print(f"✅ Movido: {arquivo} -> {pasta_destino}/")
+    except PermissionError:
+        print(f"⚠️ Ignorado: O arquivo '{arquivo}' está aberto em outro programa ou bloqueado.")
+    except Exception as e:
+        print(f"❌ Erro inesperado ao mover '{arquivo}': {e}")
+
+if __name__ == "__main__":
+    print("-" * 40)
+    print("🤖 Organizador de Arquivos Automático")
+    print("-" * 40)
+    alvo = input("Digite o caminho da pasta para organizar (ex: C:\\Users\\SeuNome\\Downloads): ")
+    organizar_diretorio(alvo)
+    print("\n✨ Organização concluída (arquivos bloqueados foram pulados)!")
+    input("\nPressione ENTER para fechar a janela...")
